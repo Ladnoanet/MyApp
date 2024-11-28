@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firebase Text Social Network</title>
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-database.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .post {
+      border: 1px solid #ddd;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Text Social Network</h1>
+  
+  <!-- Форма для публикации поста -->
+  <div>
+    <textarea id="postContent" placeholder="Write your post..." rows="4" cols="50"></textarea>
+    <br>
+    <button onclick="createPost()">Post</button>
+  </div>
+
+  <hr>
+
+  <!-- Список постов -->
+  <div id="posts">
+    <h2>All Posts</h2>
+    <!-- Посты будут добавляться сюда -->
+  </div>
+
+  <script>
+    // Firebase configuration
+    import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyAH7h1uXr60lXICNj2dGMjbIMGqE2ez6Hg",
+  authDomain: "myapp-d1f46.firebaseapp.com",
+  projectId: "myapp-d1f46",
+  storageBucket: "myapp-d1f46.firebasestorage.app",
+  messagingSenderId: "50538344453",
+  appId: "1:50538344453:web:448afcbc354b7a43a6ec6c",
+  measurementId: "G-0SMYN8FTEX"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+
+    // Функция для публикации поста
+    function createPost() {
+      const postContent = document.getElementById('postContent').value;
+
+      if (postContent.trim() === "") {
+        alert('Post content cannot be empty!');
+        return;
+      }
+
+      const ref = database.ref('posts');
+      const newPost = {
+        content: postContent,
+        timestamp: Date.now()
+      };
+
+      ref.push(newPost, (error) => {
+        if (error) {
+          alert('Error posting: ' + error.message);
+        } else {
+          alert('Post published!');
+          document.getElementById('postContent').value = ""; // Очистить текстовое поле
+        }
+      });
+    }
+
+    // Функция для получения всех постов
+    function fetchPosts() {
+      const ref = database.ref('posts');
+      ref.on('value', (snapshot) => {
+        const postsContainer = document.getElementById('posts');
+        postsContainer.innerHTML = '<h2>All Posts</h2>'; // Очистить контейнер перед отображением новых данных
+        const posts = snapshot.val();
+
+        if (posts) {
+          const sortedPosts = Object.values(posts).sort((a, b) => b.timestamp - a.timestamp); // Сортировка по времени
+          sortedPosts.forEach(post => {
+            const postElement = document.createElement('div');
+            postElement.className = 'post';
+            postElement.innerText = post.content;
+            postsContainer.appendChild(postElement);
+          });
+        } else {
+          postsContainer.innerHTML += '<p>No posts yet.</p>';
+        }
+      });
+    }
+
+    // Загрузка постов при открытии страницы
+    window.onload = fetchPosts;
+  </script>
+</body>
+</html>
